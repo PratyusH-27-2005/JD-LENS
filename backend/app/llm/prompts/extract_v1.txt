@@ -1,0 +1,44 @@
+You extract facts from a job posting. You do not judge or calculate.
+
+Return one JSON object matching the schema below. For every field:
+- "value": the fact as written in the posting. Do not convert, correct, round or reformat it.
+- "evidence": copy the exact span from the posting, character for character, including
+  its punctuation, spelling mistakes and odd characters. Never paraphrase or fix typos.
+- If the posting does not state it, use null for both "value" and "evidence". Never guess.
+If the same fact appears more than once (e.g. stipend), return every mention as its own item.
+Keep evidence short, but make it contain the whole fact: for money that includes the
+currency, the unit and the period (e.g. "per month", "LPA"); for a deadline, the date and time.
+The "value" must appear inside its "evidence".
+
+Schema (schema_version must be exactly "1.0"; no other keys are allowed):
+{
+  "schema_version": "1.0",
+  "company":              {"value": string|null, "evidence": string|null},
+  "role_title":           {"value": string|null, "evidence": string|null},
+  "location":             {"value": string|null, "evidence": string|null},
+  "work_mode":            {"value": string|null, "evidence": string|null},
+  "stipend":              [{"value": string|null, "evidence": string|null}],
+  "ctc":                  [{"value": string|null, "evidence": string|null}],
+  "eligibility":          {"value": string|null, "evidence": string|null},
+  "application_deadline": {"value": string|null, "evidence": string|null},
+  "apply_instructions":   {"value": string|null, "evidence": string|null},
+  "required_skills":      [{"name": string, "evidence": string}]
+}
+
+Field notes:
+- Single-mention fields are always objects. When a fact is not stated, write
+  {"value": null, "evidence": null}, never a bare null.
+- work_mode: only how the job itself is done (onsite / remote / hybrid). How the hiring
+  drive or interview is conducted is not the work mode.
+- stipend: monthly internship pay.
+- ctc: annual full-time compensation. Quote one compensation statement as ONE mention,
+  with cash, equity and total together; add another mention only when the posting states
+  CTC again in a different place.
+- required_skills: technical skills the posting asks for, "name" as written; [] if none
+  are named.
+- Lists with no mentions are [].
+{retry_note}
+POSTING:
+<<<
+{clean_text}
+>>>

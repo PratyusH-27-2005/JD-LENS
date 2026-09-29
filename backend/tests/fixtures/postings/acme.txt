@@ -1,0 +1,10 @@
+Acme Robotics is hiring a Backend Engineer Intern.
+
+Location: Pune, Maharashtra
+Work mode: Hybrid, 3 days a week in office
+Stipend: ₹ 30,000 per month
+CTC on conversion: 12 LPA
+Eligibility: Minimum CGPA of 7.0, no active backlogs
+Skills: Python, FastAPI, PostgreSQL, Docker
+
+Apply by 15 October 2026, 11:59 PM IST at careers.acme.example/apply

@@ -51,5 +51,18 @@ def check_mention(value: str | None, evidence: str | None, text: str) -> Flag:
     return "none" if evidence_found(evidence, text) else "unverified"
 
 
+def value_in_evidence(value: str | None, evidence: str | None) -> bool:
+    """The value must be what the quote says, not something the model wrote next to it.
+
+    Case-insensitive, same folding as the evidence check. Without this, a real quote
+    could "verify" an invented value (value "₹ 25,000", evidence "Rs. 25,00 Per Month").
+    """
+    if _blank(value):
+        return True  # nothing to show, nothing to contradict
+    if _blank(evidence):
+        return False
+    return normalize_for_match(value).casefold() in normalize_for_match(evidence).casefold()
+
+
 def _blank(s: str | None) -> bool:
     return s is None or not s.strip()

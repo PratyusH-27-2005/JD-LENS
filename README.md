@@ -24,7 +24,13 @@ pytest -q
 
 ## Known limitations
 
+**LLM extraction**
+- Latency is 5–21 s per call on gemini-2.5-flash (the Kasparro notice hit 20.7 s), close to the 30 s timeout. A timeout fails closed (`needs_review`, `llm_unavailable`) and the user can reprocess; there's no automatic retry for timeouts, only for invalid output.
+- Money mentions are reconciled per mention, so a model that splits one CTC sentence into "cash" and "total" halves would produce a false conflict. The prompt asks for one mention per statement; the eval should count how often this still happens.
+- `clean_text` keeps line breaks (spaces and blank lines are collapsed), so the model and the highlight see the posting's structure. Evidence spanning a line break still verifies because the check folds all whitespace.
+
 **Evidence check**
+- The value must also appear inside its own quote. That rejects a model that "fixes" `Rs. 25,00` to `₹ 25,000`, but also rejects a correct skill name written differently from the posting (name `PostgreSQL`, quote `Postgres`).
 - Strict by design: only whitespace, curly quotes and dash characters are folded. A model that changes case, drops a word, or adds/removes a space *inside* a token (`Rs.25,00` vs `Rs. 25,00`) gets the field marked unverified. We'd rather lose a good field than show a paraphrase.
 
 **Money**

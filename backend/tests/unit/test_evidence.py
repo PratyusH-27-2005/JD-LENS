@@ -1,6 +1,11 @@
 import pytest
 
-from app.pipeline.evidence import check_mention, evidence_found, normalize_for_match
+from app.pipeline.evidence import (
+    check_mention,
+    evidence_found,
+    normalize_for_match,
+    value_in_evidence,
+)
 
 TEXT = (
     "Stipend : Rs. 25,00 Per Month\n"
@@ -48,3 +53,20 @@ def test_normalize_for_match_folds_quotes_dashes_and_spaces():
 )
 def test_check_mention(value, evidence, flag):
     assert check_mention(value, evidence, TEXT) == flag
+
+
+@pytest.mark.parametrize(
+    ("value", "evidence", "ok"),
+    [
+        ("Kasparro", "Kasparro will be conducting an Internship", True),
+        ("Bengaluru", "Joining Location : Bengaluru", True),
+        ("react", "React.js, Node", True),  # case-insensitive
+        ("Full Stack Engineer - Intern Pathway", "Full Stack Engineer – Intern Pathway", True),
+        ("₹ 25,000 per month", "Rs. 25,00 Per Month", False),  # model "fixed" the value
+        ("Google", "Kasparro will be conducting", False),  # real quote, invented value
+        ("Bengaluru", None, False),
+        (None, "anything", True),  # no value, nothing to contradict
+    ],
+)
+def test_value_in_evidence(value, evidence, ok):
+    assert value_in_evidence(value, evidence) is ok

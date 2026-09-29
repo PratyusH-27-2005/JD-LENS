@@ -114,8 +114,8 @@ Every posting ends as `verified`, `partial` or `needs_review`, and the model's o
 1. **Ingest.** Trim, collapse whitespace into `clean_text`, hash it. A known hash returns the existing posting without calling the LLM.
 2. **Extract.** `llm_client.extract(clean_text)` with prompt `extract_v1`, JSON mode, 30 s timeout. Every call is logged to `llm_calls`.
 3. **Validate.** `ExtractionV1.model_validate_json()`. On failure, retry once with the validation error added to the prompt. Second failure → `needs_review`, reason `extraction_invalid: <short error>`.
-4. **Verify evidence.** For each field, normalize spaces and curly quotes or dashes in both strings, then check `evidence in clean_text`. Not found → flag `unverified`, value hidden. Both null → flag `missing`.
-5. **Normalize.** Pure functions, no LLM. Several money mentions that disagree → flag `conflict` and keep all of them.
+4. **Verify evidence.** For each field, normalize spaces and curly quotes or dashes in both strings, then check `evidence in clean_text`. Not found → flag `unverified`, value hidden. Both null → flag `missing`. The value must also appear inside its own evidence (case-insensitive); otherwise `unverified` — a real quote must not vouch for an invented value.
+5. **Normalize.** Pure functions, no LLM, run on the verified **evidence**, never on the model's value. Several money mentions that disagree → flag `conflict` and keep all of them.
 6. **Status, score, save.** Company and role verified with no flags → `verified`; verified with some flags → `partial`; otherwise `needs_review`. Then score and write everything in one transaction.
 
 ### Money parser rules (`normalize/money.py`)
@@ -263,8 +263,11 @@ jd-lens/
         api.py               # request/response models
       llm/
         client.py            # the ONLY module that imports the LLM SDK
+        types.py             # LLMClient protocol, LLMResponse, LLMUnavailable (no SDK)
+        prompt.py            # loads and fills prompts/<version>.txt
         prompts/extract_v1.txt
       pipeline/
+        ingest.py            # clean_text + content_hash
         run.py               # orchestrates steps, sets status
         evidence.py
         normalize/money.py
@@ -276,6 +279,7 @@ jd-lens/
       routers/postings.py
       routers/profile.py
       routers/health.py
+      cli.py                 # python -m app.cli <posting.txt>: one real run, printed
       eval.py
     tests/
       unit/  pipeline/  api/  fixtures/postings/
