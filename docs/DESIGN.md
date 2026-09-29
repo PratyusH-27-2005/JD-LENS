@@ -175,6 +175,7 @@ Eight endpoints, all async, all with Pydantic request and response models and on
 | DELETE | `/postings/{id}` | Deletes a posting and its rows. | 204 |
 | GET | `/profile` | Your profile. | Profile |
 | PUT | `/profile` | Updates the profile and rescores every posting. | Profile |
+| POST | `/profile/resume` | Body: the PDF bytes (`Content-Type: application/pdf`, ≤ 5 MB). Extracts name, CGPA and skills with verified quotes. Stores nothing and does not change the profile. | Suggestions + rejected items; 413/415/422/502/503 on failure. |
 | GET | `/health` | Database reachable, LLM key configured. | `{db: ok, llm_configured: true}` |
 
 ### Errors
@@ -185,6 +186,18 @@ Every error returns `{"error": {"code": "...", "message": "...", "details": ...}
 - Unknown id → 404 `not_found`.
 - LLM timeout (30 s) or provider down → the posting is still saved, status `needs_review`, reason `llm_unavailable`; the response is 201 so the UI can offer Reprocess.
 - More than 10 `POST /postings` a minute from one IP → 429 `rate_limited` (slowapi). This protects your API credits once the demo is public.
+
+## Resume import (added after Phase 4)
+
+Upload a PDF on the profile page to pre-fill it. Same rule as postings: the model quotes, code judges.
+
+1. `pipeline/pdf.py` extracts the text layer with pypdf (≤ 10 pages). No text (a scanned image) → 422 `resume_unreadable`; the model is never called.
+2. `schemas/resume_v1.py` + `prompts/resume_v1.txt`: name, CGPA, skills, each with an exact quote. A separate, versioned contract.
+3. `pipeline/llm_step.py`: the same validate-and-retry-once loop postings use (fail closed).
+4. Every quote is checked against the resume text, and the value must be inside its quote. CGPA is parsed by code from the quote (`normalize/cgpa.py`); only a 10-point scale is accepted: "3.7/4" or percentages are rejected with a reason, never converted.
+5. The API returns suggestions only. The form merges them *add, don't replace*: new skills are appended (aliases considered), an empty name/CGPA is filled, a different existing value becomes a one-click offer. Nothing is saved until PUT /profile.
+
+Privacy: neither the file nor its text is stored, and resume LLM calls are not written to `llm_calls` (that table is per posting). The text is sent to the LLM provider; the UI says so next to the upload button.
 
 ## Frontend
 

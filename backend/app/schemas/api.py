@@ -88,6 +88,38 @@ class ProfileOut(ProfileIn):
     updated_at: datetime | None = None
 
 
+class ResumeValue(BaseModel):
+    value: str
+    evidence: str = Field(description="exact quote from the resume, verified by code")
+
+
+class ResumeCgpa(BaseModel):
+    value: float = Field(description="parsed by code from the quote")
+    evidence: str
+
+
+class ResumeSkillOut(ResumeValue):
+    new: bool = Field(description="not already in the profile (aliases considered)")
+
+
+class ResumeRejected(BaseModel):
+    field: Literal["name", "cgpa", "skill"]
+    value: str | None
+    reason: str
+
+
+class ResumeImport(BaseModel):
+    """Suggestions only: the profile is not changed until PUT /profile."""
+
+    name: ResumeValue | None
+    cgpa: ResumeCgpa | None
+    skills: list[ResumeSkillOut]
+    rejected: list[ResumeRejected]
+    model_name: str
+    prompt_version: str
+    text_chars: int
+
+
 class HealthResponse(BaseModel):
     db: Literal["ok", "error"]
     llm_configured: bool

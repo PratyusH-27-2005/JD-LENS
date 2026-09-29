@@ -11,11 +11,10 @@ from dataclasses import dataclass, replace
 from datetime import datetime
 from typing import Any, Literal
 
-from pydantic import ValidationError
-
 from app.llm.prompt import PROMPT_VERSION, render_extract_prompt
-from app.llm.types import LLMClient, LLMResponse, LLMUnavailable
+from app.llm.types import LLMClient
 from app.pipeline.evidence import check_mention, value_in_evidence
+from app.pipeline.llm_step import CallLog, extract_validated
 from app.pipeline.normalize.dates import parse_deadline
 from app.pipeline.normalize.eligibility import parse_eligibility
 from app.pipeline.normalize.money import parse_ctc, parse_stipend, reconcile
@@ -25,7 +24,6 @@ from app.pipeline.scoring import PostingFacts
 from app.schemas.extraction_v1 import ExtractionV1, Mention
 
 SCHEMA_VERSION = "1.0"
-MAX_ATTEMPTS = 2  # one try + one retry with the validation error
 
 Status = Literal["verified", "partial", "needs_review"]
 
@@ -51,21 +49,6 @@ _REASONS = {
     "missing": "not stated in the posting",
     "unverified": "evidence not found in the posting text",
 }
-
-
-@dataclass(frozen=True)
-class CallLog:
-    """One row of llm_calls."""
-
-    attempt: int
-    prompt_version: str
-    model: str
-    latency_ms: int | None
-    input_tokens: int | None
-    output_tokens: int | None
-    raw_response: str | None
-    parse_ok: bool
-    error: str | None
 
 
 @dataclass(frozen=True)
@@ -100,33 +83,24 @@ class PipelineResult:
 
 
 async def run_extraction(clean_text: str, client: LLMClient) -> PipelineResult:
-    calls: list[CallLog] = []
-    error: str | None = None
-    for attempt in range(1, MAX_ATTEMPTS + 1):
-        prompt = render_extract_prompt(clean_text, previous_error=error)
-        try:
-            response = await client.extract(prompt)
-        except LLMUnavailable as e:
-            calls.append(_log(client, attempt, None, parse_ok=False, error=f"llm_unavailable: {e}"))
-            return _needs_review("llm_unavailable", calls, client)
-        try:
-            extraction = ExtractionV1.model_validate_json(response.text)
-        except ValidationError as e:
-            error = _short_error(e)
-            calls.append(_log(client, attempt, response, parse_ok=False, error=error))
-            continue
-        calls.append(_log(client, attempt, response, parse_ok=True, error=None))
-        fields = verify_and_normalize(extraction, clean_text)
-        status, reason = decide_status(fields)
-        return PipelineResult(
-            status=status,
-            status_reason=reason,
-            fields=fields,
-            calls=calls,
-            facts=facts_for_scoring(fields),
-            model_name=client.model_name,
-        )
-    return _needs_review(f"extraction_invalid: {error}", calls, client)
+    step = await extract_validated(
+        client,
+        ExtractionV1,
+        lambda error: render_extract_prompt(clean_text, previous_error=error),
+        PROMPT_VERSION,
+    )
+    if step.parsed is None:
+        return _needs_review(step.failure or "extraction_invalid", step.calls, client)
+    fields = verify_and_normalize(step.parsed, clean_text)
+    status, reason = decide_status(fields)
+    return PipelineResult(
+        status=status,
+        status_reason=reason,
+        fields=fields,
+        calls=step.calls,
+        facts=facts_for_scoring(fields),
+        model_name=client.model_name,
+    )
 
 
 # --- steps 4 and 5: evidence, then normalization -------------------------------------
@@ -229,35 +203,3 @@ def _needs_review(reason: str, calls: list[CallLog], client: LLMClient) -> Pipel
         facts=PostingFacts(),
         model_name=client.model_name,
     )
-
-
-def _log(
-    client: LLMClient,
-    attempt: int,
-    response: LLMResponse | None,
-    *,
-    parse_ok: bool,
-    error: str | None,
-) -> CallLog:
-    return CallLog(
-        attempt=attempt,
-        prompt_version=PROMPT_VERSION,
-        model=client.model_name,
-        latency_ms=response.latency_ms if response else None,
-        input_tokens=response.input_tokens if response else None,
-        output_tokens=response.output_tokens if response else None,
-        raw_response=response.text if response else None,
-        parse_ok=parse_ok,
-        error=error,
-    )
-
-
-def _short_error(e: ValidationError, limit: int = 3) -> str:
-    """The first few validation errors, short enough to put back into the prompt."""
-    errors = e.errors()
-    parts = [
-        f"{'.'.join(str(p) for p in err['loc']) or '<root>'}: {err['msg']}"
-        for err in errors[:limit]
-    ]
-    more = f" (+{len(errors) - limit} more)" if len(errors) > limit else ""
-    return ("; ".join(parts) + more)[:400]

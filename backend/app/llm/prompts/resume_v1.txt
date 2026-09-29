@@ -1,0 +1,30 @@
+You extract facts from a resume. You do not judge, rate or infer.
+
+Return one JSON object matching the schema below. For every field:
+- "value": the fact as written in the resume. Do not convert, round or reformat it.
+- "evidence": copy the exact span from the resume, character for character.
+- If the resume does not state it, use {"value": null, "evidence": null}. Never guess.
+The "value" must appear inside its "evidence".
+
+Schema (schema_version must be exactly "1.0"; no other keys are allowed):
+{
+  "schema_version": "1.0",
+  "name":   {"value": string|null, "evidence": string|null},
+  "cgpa":   {"value": string|null, "evidence": string|null},
+  "skills": [{"name": string, "evidence": string}]
+}
+
+Field notes:
+- name: the candidate's full name, usually at the top.
+- cgpa: the CGPA/CPI/GPA of the current or most recent degree (e.g. B.Tech), with its
+  scale if written ("8.1/10"). Not school marks or percentages. The evidence must include
+  the number.
+- skills: technical skills the resume lists or clearly names (languages, frameworks,
+  databases, tools, cloud). "name" exactly as written; "evidence" is the short span that
+  names it, e.g. the skill itself or "Skills: Python, FastAPI". List each skill once.
+  Do not add skills that are only implied.
+{retry_note}
+RESUME:
+<<<
+{text}
+>>>

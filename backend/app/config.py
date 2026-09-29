@@ -38,6 +38,7 @@ class Settings(BaseSettings):
     llm_timeout_s: float = 30.0
     allowed_origins: str = "http://localhost:3000"
     rate_limit_postings: str = "10/minute"
+    rate_limit_resume: str = "5/minute"
 
     @field_validator("database_url", "test_database_url")
     @classmethod

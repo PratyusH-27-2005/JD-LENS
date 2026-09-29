@@ -7,6 +7,7 @@ import type {
   PostingSummary,
   Profile,
   ProfileInput,
+  ResumeImport,
   Sort,
   Status,
   ValidationIssue,
@@ -108,4 +109,14 @@ export const api = {
 
   putProfile: async (profile: ProfileInput) =>
     (await request<Profile>("/profile", { method: "PUT", body: JSON.stringify(profile) })).body,
+
+  /** Sends the PDF bytes as-is. Returns suggestions only; the profile isn't changed. */
+  importResume: async (file: File) =>
+    (
+      await request<ResumeImport>("/profile/resume", {
+        method: "POST",
+        body: file,
+        headers: { "content-type": "application/pdf" },
+      })
+    ).body,
 };

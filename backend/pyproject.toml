@@ -17,6 +17,7 @@ dependencies = [
     "google-genai>=2.0",  # only app/llm/client.py may import it (tests/test_guard.py)
     "alembic>=1.13",
     "slowapi>=0.1.9",
+    "pypdf>=5.0",  # resume text extraction (pure Python)
 ]
 
 [project.optional-dependencies]

@@ -34,6 +34,12 @@ API tests run against a real Postgres (`TEST_DATABASE_URL`, a database whose nam
 
 ## Known limitations
 
+**Resume import**
+- PDF only, text layer only: scanned resumes are refused with a message (no OCR). Multi-column layouts can come out of pypdf in a jumbled order; quotes that span the jumble won't verify and are dropped, not guessed.
+- The resume text goes to Gemini. On the free tier Google may use it to improve its products; the upload button says so. JD Lens stores neither the file nor the text, which also means resume extractions have no `llm_calls` trace.
+- CGPA on a 10-point scale only; other scales are shown as rejected rather than converted.
+- There's no login, so on a public deploy anyone can import a resume into (and save over) the single profile. Same as `PUT /profile` today.
+
 **Web app**
 - No frontend tests yet: the pages were checked by hand in a browser (every state: loading, empty, API down, not found, validation, save). The evidence-finding logic in `lib/highlight.ts` mirrors the backend's folding rules but isn't unit-tested on its own.
 - Data is fetched in the browser (client components), so the first paint is a skeleton. Fine for a personal tool; server-side fetching would help SEO, which this doesn't need.

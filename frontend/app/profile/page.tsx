@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { ResumeImport, ResumeReport } from "@/components/ResumeImport";
 import { TagInput } from "@/components/TagInput";
 import { Button, ErrorState, PageHeader, Skeleton, Spinner } from "@/components/ui";
 import { ApiError, api } from "@/lib/api";
 import { dateTime } from "@/lib/format";
-import type { Profile, ProfileInput } from "@/lib/types";
+import type { Profile, ProfileInput, ResumeImport as ResumeResult } from "@/lib/types";
 import { useAsync } from "@/lib/useAsync";
 
 export default function ProfilePage() {
@@ -57,6 +58,13 @@ function toInput(f: Form): ProfileInput {
   };
 }
 
+type Offer = { field: "name" | "cgpa"; label: string; suggested: string; evidence: string };
+type Imported = {
+  result: ResumeResult;
+  added: { skills: string[]; name: boolean; cgpa: boolean };
+  offers: Offer[];
+};
+
 /** Client-side checks mirror the API's (cgpa 0–10, cash ≥ 0); the API still has the last word. */
 function validate(f: Form): Partial<Record<keyof ProfileInput, string>> {
   const errors: Partial<Record<keyof ProfileInput, string>> = {};
@@ -73,6 +81,7 @@ function ProfileForm({ initial }: { initial: Profile }) {
   const [state, setState] = useState<"idle" | "saving" | "saved">("idle");
   const [serverError, setServerError] = useState<ApiError | null>(null);
   const [touched, setTouched] = useState(false);
+  const [imported, setImported] = useState<Imported | null>(null);
 
   const errors = validate(form);
   const serverFieldErrors = Object.fromEntries(
@@ -96,6 +105,7 @@ function ProfileForm({ initial }: { initial: Profile }) {
       const next = await api.putProfile(toInput(form));
       setSaved(next);
       setForm(toForm(next));
+      setImported(null);
       setState("saved");
     } catch (err) {
       setServerError(err as ApiError);
@@ -103,7 +113,51 @@ function ProfileForm({ initial }: { initial: Profile }) {
     }
   };
 
+  // Resume import: add, don't replace. Empty fields are filled; a different existing
+  // value becomes an offer the user can accept. Skills are appended if not already there.
+
+  const applyResume = (r: ResumeResult) => {
+    const have = new Set(form.skills.map((s) => s.toLowerCase()));
+    const skills = r.skills.filter((s) => s.new && !have.has(s.value.toLowerCase())).map((s) => s.value);
+    const fillName = Boolean(r.name) && !form.name.trim();
+    const fillCgpa = Boolean(r.cgpa) && !form.cgpa.trim();
+    const offers: Offer[] = [];
+    if (r.name && !fillName && r.name.value !== form.name.trim())
+      offers.push({ field: "name", label: "your name is", suggested: r.name.value, evidence: r.name.evidence });
+    if (r.cgpa && !fillCgpa && Number(form.cgpa) !== r.cgpa.value)
+      offers.push({ field: "cgpa", label: "your CGPA is", suggested: String(r.cgpa.value), evidence: r.cgpa.evidence });
+
+    setForm((f) => ({
+      ...f,
+      skills: [...f.skills, ...skills],
+      name: fillName ? r.name!.value : f.name,
+      cgpa: fillCgpa ? String(r.cgpa!.value) : f.cgpa,
+    }));
+    setImported({ result: r, added: { skills, name: fillName, cgpa: fillCgpa }, offers });
+    setState("idle");
+  };
+
+  const acceptOffer = (o: Offer) => {
+    update(o.field, o.suggested);
+    setImported((i) => i && { ...i, offers: i.offers.filter((x) => x !== o) });
+  };
+
   return (
+    <>
+    <ResumeImport onResult={applyResume} />
+    {imported && (
+      <ResumeReport
+        result={imported.result}
+        added={imported.added}
+        offers={imported.offers.map((o) => ({
+          label: o.label,
+          current: form[o.field] || "nothing",
+          suggested: o.suggested,
+          evidence: o.evidence,
+          accept: () => acceptOffer(o),
+        }))}
+      />
+    )}
     <form onSubmit={save} className="space-y-5 rounded-lg border border-stone-200 bg-white p-6" noValidate>
       <Row label="Name" htmlFor="name">
         <input id="name" value={form.name} onChange={(e) => update("name", e.target.value)} className={input} />
@@ -114,7 +168,13 @@ function ProfileForm({ initial }: { initial: Profile }) {
         htmlFor="skills"
         hint="Press Enter or comma after each. Matching ignores case and knows common aliases (postgres = PostgreSQL, nextjs = Next.js)."
       >
-        <TagInput id="skills" value={form.skills} onChange={(v) => update("skills", v)} placeholder="Python, React, …" />
+        <TagInput
+          id="skills"
+          value={form.skills}
+          onChange={(v) => update("skills", v)}
+          placeholder="Python, React, …"
+          highlight={imported ? new Set(imported.added.skills) : undefined}
+        />
       </Row>
 
       <div className="grid gap-5 sm:grid-cols-2">
@@ -191,6 +251,7 @@ function ProfileForm({ initial }: { initial: Profile }) {
         </span>
       </div>
     </form>
+    </>
   );
 }
 

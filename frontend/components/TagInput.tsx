@@ -8,11 +8,14 @@ export function TagInput({
   value,
   onChange,
   placeholder,
+  highlight,
 }: {
   id: string;
   value: string[];
   onChange: (next: string[]) => void;
   placeholder?: string;
+  /** Tags to mark as new (e.g. just added from a resume). */
+  highlight?: Set<string>;
 }) {
   const [draft, setDraft] = useState("");
 
@@ -30,7 +33,10 @@ export function TagInput({
       {value.map((tag) => (
         <span
           key={tag}
-          className="inline-flex items-center gap-1 rounded bg-stone-100 py-0.5 pl-2 pr-1 text-sm text-stone-800"
+          title={highlight?.has(tag) ? "Added from your resume (not saved yet)" : undefined}
+          className={`inline-flex items-center gap-1 rounded py-0.5 pl-2 pr-1 text-sm ${
+            highlight?.has(tag) ? "bg-sky-100 text-sky-900 ring-1 ring-inset ring-sky-300" : "bg-stone-100 text-stone-800"
+          }`}
         >
           {tag}
           <button

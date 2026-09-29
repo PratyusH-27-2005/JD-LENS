@@ -127,6 +127,17 @@ export interface Profile extends ProfileInput {
   updated_at: string | null;
 }
 
+/** POST /profile/resume: suggestions with verified quotes. Nothing is saved by it. */
+export interface ResumeImport {
+  name: { value: string; evidence: string } | null;
+  cgpa: { value: number; evidence: string } | null;
+  skills: { value: string; evidence: string; new: boolean }[];
+  rejected: { field: "name" | "cgpa" | "skill"; value: string | null; reason: string }[];
+  model_name: string;
+  prompt_version: string;
+  text_chars: number;
+}
+
 export interface Health {
   db: "ok" | "error";
   llm_configured: boolean;
