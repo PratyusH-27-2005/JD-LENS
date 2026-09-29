@@ -1,0 +1,12 @@
+Zeta Payments (fictional sample posting) - Software Engineer Intern, Backend
+
+About the role: you'll build payment APIs used by partner banks.
+
+Location: Remote (India)
+Stipend: ₹40,000 - ₹50,000 per month
+Duration: 6 months, with a pre-placement offer for strong performers.
+CTC after conversion: 14-18 LPA
+Eligibility: B.Tech/B.E. 2027 batch, CGPA 7.5 or above, no active backlogs.
+Must have: Python, PostgreSQL, REST APIs, Git. Nice to have: Kubernetes, Kafka.
+
+Apply before 20 October 2026 via zeta.example/careers.

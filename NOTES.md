@@ -16,3 +16,23 @@ Anything that took over 30 minutes to figure out — raw material for the "harde
 - Final (attempt 2): stipend ambiguous (`"25,00" is not a valid digit grouping`), CTC cash
   5–8 L / total 10–16 L / ESOP, deadline 2026-09-30T09:00+05:30 (tz assumed), CGPA ≥ 6.0,
   no backlogs. Status `partial`.
+
+## 2026-09-30 — the rate limit could be bypassed with one fake header (found on the live deploy)
+
+- **Symptom:** none, which is the point. The limiter worked in tests and on Render: 10
+  posts accepted, the 11th got 429.
+- **How I found it:** asked "what does the limiter key on behind Render's proxy?". The
+  Dockerfile ran uvicorn with `--proxy-headers --forwarded-allow-ips='*'`, so the client IP
+  was the *leftmost* `X-Forwarded-For` entry, and the leftmost entry is whatever the client
+  sends. Test on the live API: exhaust the limit, then send `X-Forwarded-For: 1.2.3.4` →
+  200, `5.6.7.8` → 200, no header → 429. Anyone could reset their limit per request and
+  burn the Gemini quota.
+- **Why tests missed it:** the test client has no proxy in front, so the header path never
+  ran. The bug only exists in the deployed topology.
+- **Fix:** response headers (`Server: cloudflare`, `CF-RAY`) show Render's edge is
+  Cloudflare, which sets `CF-Connecting-IP` to the real client address. The limiter keys on
+  that when `TRUST_CF_CONNECTING_IP=true` (set in render.yaml), and never reads
+  `X-Forwarded-For`; `--forwarded-allow-ips='*'` is gone. Unit tests pin the behaviour; the
+  live re-test is below.
+- **Lesson:** "trust the proxy headers" is only safe when you know exactly which proxy
+  wrote them. `'*'` means "trust anyone".

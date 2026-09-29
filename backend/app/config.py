@@ -40,6 +40,9 @@ class Settings(BaseSettings):
     allowed_origin_regex: str = ""
     rate_limit_postings: str = "10/minute"
     rate_limit_resume: str = "5/minute"
+    # True only when every request arrives through Cloudflare (e.g. on Render), which sets
+    # CF-Connecting-IP itself. Anywhere else the header could be forged. See ratelimit.py.
+    trust_cf_connecting_ip: bool = False
 
     @field_validator("database_url", "test_database_url")
     @classmethod

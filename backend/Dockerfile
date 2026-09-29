@@ -23,5 +23,6 @@ USER api
 EXPOSE 8000
 
 # Migrations run on every start (idempotent; one instance), then the API.
-# --proxy-headers: the rate limiter must see the real client IP behind Render's proxy.
-CMD ["sh", "-c", "alembic upgrade head && exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --proxy-headers --forwarded-allow-ips='*'"]
+# No --forwarded-allow-ips='*': that trusts the client-supplied X-Forwarded-For. The rate
+# limiter gets the real client IP from Cloudflare instead (TRUST_CF_CONNECTING_IP).
+CMD ["sh", "-c", "alembic upgrade head && exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]

@@ -19,9 +19,11 @@ services:
         value: gemini-2.5-flash
       - key: LLM_TIMEOUT_S
         value: "30"
-      - key: ALLOWED_ORIGINS # your Vercel URL, e.g. https://jd-lens.vercel.app
+      - key: ALLOWED_ORIGINS # exact Vercel URL(s), e.g. https://jd-lens-ten.vercel.app
         sync: false
       - key: RATE_LIMIT_POSTINGS
         value: 10/minute
       - key: RATE_LIMIT_RESUME
         value: 5/minute
+      - key: TRUST_CF_CONNECTING_IP # Render's edge is Cloudflare; see app/ratelimit.py
+        value: "true"

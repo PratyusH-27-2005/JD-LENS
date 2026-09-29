@@ -51,7 +51,7 @@ API tests run against a real Postgres (`TEST_DATABASE_URL`, a database whose nam
 
 **API and data**
 - The pipeline runs inside `POST /postings` (5–20 s). Fine for one user; a job queue with polling is the listed extension.
-- The rate limit (10 `POST /postings` per minute per IP) is kept in memory, so it resets on restart and isn't shared between API instances. Behind a proxy it needs the real client IP (`--proxy-headers`).
+- The rate limit (10 `POST /postings` and 5 resume imports per minute per IP) is kept in memory, so it resets on restart and isn't shared between API instances. The client IP comes from Cloudflare's `CF-Connecting-IP` on Render (`TRUST_CF_CONNECTING_IP=true`), never from `X-Forwarded-For`, which the client controls (see NOTES.md for how that was found). Deployed somewhere without Cloudflare, every client behind the same proxy would share one limit.
 - A score rescales over the parts it could compute, so a posting with no listed skills can score 100 on location and pay alone. The breakdown records which parts were left out; the UI should show that coverage next to the number.
 - "Closed" is computed from the deadline at read time, never stored, so the badge flips without a rescore.
 - `GET /postings` returns everything, with no pagination. Fine for a personal tracker, not for thousands of rows.
