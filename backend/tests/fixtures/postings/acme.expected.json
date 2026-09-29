@@ -1,0 +1,22 @@
+{
+  "note": "A clean posting: everything should verify.",
+  "status": "verified",
+  "fields": {
+    "company": {"flag": "none", "value_contains": "Acme Robotics"},
+    "role_title": {"flag": "none", "value_contains": "Backend Engineer Intern"},
+    "location": {"flag": "none", "value_contains": "Pune"},
+    "work_mode": {"flag": "none", "normalized": {"mode": "hybrid", "days_per_week": 3}},
+    "stipend": {"flag": "none", "normalized": {"period": "month", "min_inr": 30000, "max_inr": 30000}},
+    "ctc": {
+      "flag": "none",
+      "normalized": {"cash_min_inr": 1200000, "cash_max_inr": 1200000, "total_min_inr": 1200000, "total_max_inr": 1200000, "has_equity": false}
+    },
+    "eligibility": {"flag": "none", "normalized": {"cgpa_min": 7.0, "backlogs_allowed": false}},
+    "application_deadline": {
+      "flag": "none",
+      "normalized": {"iso": "2026-10-15T23:59:00+05:30", "tz_assumed": false, "time_assumed": false}
+    },
+    "apply_instructions": {"flag": "none", "value_contains": "careers.acme.example/apply"},
+    "required_skills": {"required": ["python", "fastapi", "postgresql", "docker"], "allowed_extra": []}
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "note": "Written from the notice text, not from model output. The stipend 'Rs. 25,00' must be flagged, never parsed.",
+  "status": "partial",
+  "fields": {
+    "company": {"flag": "none", "value_contains": "Kasparro"},
+    "role_title": {"flag": "none", "value_contains": "Full Stack Engineer"},
+    "location": {"flag": "none", "value_contains": "Bengaluru"},
+    "work_mode": {"flag": "missing"},
+    "stipend": {"flag": "ambiguous"},
+    "ctc": {
+      "flag": "none",
+      "normalized": {"cash_min_inr": 500000, "cash_max_inr": 800000, "total_min_inr": 1000000, "total_max_inr": 1600000, "has_equity": true}
+    },
+    "eligibility": {"flag": "none", "normalized": {"cgpa_min": 6.0, "backlogs_allowed": false}},
+    "application_deadline": {
+      "flag": "none",
+      "normalized": {"iso": "2026-09-30T09:00:00+05:30", "tz_assumed": true, "time_assumed": false}
+    },
+    "apply_instructions": {"flag": "none", "value_contains": "nehakannan@kasparro.com"},
+    "required_skills": {"required": [], "allowed_extra": []}
+  }
+}

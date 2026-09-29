@@ -1,0 +1,22 @@
+{
+  "note": "Ranges, a remote role and a deadline with no time or timezone. Kubernetes/Kafka are 'nice to have': allowed but not required.",
+  "status": "verified",
+  "fields": {
+    "company": {"flag": "none", "value_contains": "Zeta Payments"},
+    "role_title": {"flag": "none", "value_contains": "Software Engineer Intern"},
+    "location": {"flag": "none", "value_contains": "Remote"},
+    "work_mode": {"flag": "none", "normalized": {"mode": "remote", "days_per_week": null}},
+    "stipend": {"flag": "none", "normalized": {"period": "month", "min_inr": 40000, "max_inr": 50000}},
+    "ctc": {
+      "flag": "none",
+      "normalized": {"cash_min_inr": 1400000, "cash_max_inr": 1800000, "total_min_inr": 1400000, "total_max_inr": 1800000, "has_equity": false}
+    },
+    "eligibility": {"flag": "none", "normalized": {"cgpa_min": 7.5, "backlogs_allowed": false}},
+    "application_deadline": {
+      "flag": "none",
+      "normalized": {"iso": "2026-10-20T23:59:59+05:30", "tz_assumed": true, "time_assumed": true}
+    },
+    "apply_instructions": {"flag": "none", "value_contains": "zeta.example/careers"},
+    "required_skills": {"required": ["python", "postgresql", "rest apis", "git"], "allowed_extra": ["kubernetes", "kafka"]}
+  }
+}

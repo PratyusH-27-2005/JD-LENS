@@ -1,0 +1,91 @@
+{
+  "posting_id": "46c8e9de-a7ee-438f-b1c6-b4cf0619b4a3",
+  "status": "partial",
+  "status_reason": "flagged: stipend (ambiguous)",
+  "llm_calls": [
+    {
+      "id": 1,
+      "attempt": 1,
+      "prompt_version": "extract_v1",
+      "model": "gemini-2.5-flash",
+      "latency_ms": 6498,
+      "input_tokens": 984,
+      "output_tokens": 711,
+      "parse_ok": true,
+      "error": null,
+      "created_at": "2026-09-29T21:07:55.589898+00:00",
+      "raw_response": {
+        "schema_version": "1.0",
+        "company": {
+          "value": "Kasparro",
+          "evidence": "Kasparro"
+        },
+        "role_title": {
+          "value": "Full Stack Engineer – Intern Pathway",
+          "evidence": "Profile Offered : Full Stack Engineer – Intern Pathway"
+        },
+        "location": {
+          "value": "Bengaluru",
+          "evidence": "Joining Location : Bengaluru"
+        },
+        "work_mode": {
+          "value": null,
+          "evidence": null
+        },
+        "stipend": [
+          {
+            "value": "Rs. 25,00 Per Month",
+            "evidence": "Stipend : Rs. 25,00 Per Month"
+          }
+        ],
+        "ctc": [
+          {
+            "value": "Rs. 5.00 –Rs. 8.00 LPA cash, plus an ESOP grant of matching value. Total Rs. 10.00–Rs. 16.00 LPA",
+            "evidence": "CTC : Rs. 5.00 –Rs. 8.00 LPA cash, plus an ESOP grant of matching value. Total Rs. 10.00–Rs. 16.00 LPA"
+          }
+        ],
+        "eligibility": {
+          "value": "6.00 or above CGPA in B.Tech, No Backlogs",
+          "evidence": "Eligibility Criteria : 6.00 or above CGPA in B.Tech, No Backlogs"
+        },
+        "application_deadline": {
+          "value": "30th Sept’2026 by 9.00 AM",
+          "evidence": "on or before 30th Sept’2026 by 9.00 AM"
+        },
+        "apply_instructions": {
+          "value": "Along with your application, include:\n\n* A link to something you built: a repo, a live app, or a demo. This is the most important part of your application.\n* One paragraph on the hardest bug you have personally tracked down, and how you found it.\n* Applications without a project link will not be prioritized.\n* Send an email to nehakannan@kasparro.com, hazel@kasparro.com with a CC to [grandmaster@kasparro.com](mailto:grandmaster@kasparro.com)",
+          "evidence": "How to Apply :\nAlong with your application, include:\n\n* A link to something you built: a repo, a live app, or a demo. This is the most important part of your application.\n* One paragraph on the hardest bug you have personally tracked down, and how you found it.\n* Applications without a project link will not be prioritized.\n* Send an email to nehakannan@kasparro.com, hazel@kasparro.com with a CC to [grandmaster@kasparro.com](mailto:grandmaster@kasparro.com)"
+        },
+        "required_skills": []
+      }
+    }
+  ],
+  "extracted_money_fields": [
+    {
+      "field": "ctc",
+      "mention_index": 0,
+      "raw_value": "Rs. 5.00 –Rs. 8.00 LPA cash, plus an ESOP grant of matching value. Total Rs. 10.00–Rs. 16.00 LPA",
+      "evidence": "CTC : Rs. 5.00 –Rs. 8.00 LPA cash, plus an ESOP grant of matching value. Total Rs. 10.00–Rs. 16.00 LPA",
+      "evidence_verified": true,
+      "flag": "none",
+      "flag_reason": null,
+      "normalized": {
+        "has_equity": true,
+        "cash_max_inr": 800000,
+        "cash_min_inr": 500000,
+        "total_max_inr": 1600000,
+        "total_min_inr": 1000000
+      }
+    },
+    {
+      "field": "stipend",
+      "mention_index": 0,
+      "raw_value": "Rs. 25,00 Per Month",
+      "evidence": "Stipend : Rs. 25,00 Per Month",
+      "evidence_verified": true,
+      "flag": "ambiguous",
+      "flag_reason": "\"25,00\" is not a valid digit grouping",
+      "normalized": null
+    }
+  ]
+}
