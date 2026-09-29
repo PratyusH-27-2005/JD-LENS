@@ -24,6 +24,9 @@ class FakeLLMClient:
         self._responses = list(responses)
         self.prompts: list[str] = []
 
+    def queue(self, *responses: str | dict[str, Any] | Exception) -> None:
+        self._responses.extend(responses)
+
     async def extract(self, prompt: str) -> LLMResponse:
         self.prompts.append(prompt)
         r = self._responses.pop(0)

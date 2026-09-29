@@ -5,12 +5,13 @@ Swapping providers means rewriting this file and nothing else.
 
 import asyncio
 import time
+from functools import lru_cache
 
 from google import genai
 from google.genai import types
 
-from app.config import Settings
-from app.llm.types import LLMResponse, LLMUnavailable
+from app.config import Settings, get_settings
+from app.llm.types import LLMClient, LLMResponse, LLMUnavailable
 
 
 class GeminiClient:
@@ -53,3 +54,9 @@ class GeminiClient:
             output_tokens=usage.candidates_token_count if usage else None,
             latency_ms=round((time.perf_counter() - start) * 1000),
         )
+
+
+@lru_cache
+def get_llm_client() -> LLMClient:
+    """FastAPI dependency. Tests override it with a FakeLLMClient."""
+    return GeminiClient.from_settings(get_settings())

@@ -7,22 +7,36 @@ Paste a job posting, get verified fields and a fit score. Every value shown is t
 ## Run locally
 
 ```bash
-cp .env.example .env            # fill in LLM_API_KEY
-docker compose up -d db
+cp .env.example .env            # fill in LLM_API_KEY and DATABASE_URL
+docker compose up -d db         # or use a Neon database: paste its connection string as-is
 cd backend
 pip install -e ".[dev]"
-uvicorn app.main:app --reload   # http://localhost:8000/health
+alembic upgrade head
+uvicorn app.main:app --reload   # http://localhost:8000/docs
 ```
+
+Try one posting against the real model without the API: `python -m app.cli tests/fixtures/postings/kasparro.txt --raw`.
 
 ## Tests
 
 ```bash
 cd backend
-ruff check .
-pytest -q
+ruff check . && ruff format --check .
+pytest -q                          # everything; API tests need TEST_DATABASE_URL
+pytest -q tests/unit tests/pipeline  # fast, no database, no network
 ```
 
+API tests run against a real Postgres (`TEST_DATABASE_URL`, a database whose name ends in `_test`: tests truncate its tables). They're skipped when it isn't set. CI runs them against a Postgres service container.
+
 ## Known limitations
+
+**API and data**
+- The pipeline runs inside `POST /postings` (5–20 s). Fine for one user; a job queue with polling is the listed extension.
+- The rate limit (10 `POST /postings` per minute per IP) is kept in memory, so it resets on restart and isn't shared between API instances. Behind a proxy it needs the real client IP (`--proxy-headers`).
+- A score rescales over the parts it could compute, so a posting with no listed skills can score 100 on location and pay alone. The breakdown records which parts were left out; the UI should show that coverage next to the number.
+- "Closed" is computed from the deadline at read time, never stored, so the badge flips without a rescore.
+- `GET /postings` returns everything, with no pagination. Fine for a personal tracker, not for thousands of rows.
+- `PUT /profile` rescores every posting in one transaction; linear in the number of postings.
 
 **LLM extraction**
 - Latency is 5–21 s per call on gemini-2.5-flash (the Kasparro notice hit 20.7 s), close to the 30 s timeout. A timeout fails closed (`needs_review`, `llm_unavailable`) and the user can reprocess; there's no automatic retry for timeouts, only for invalid output.

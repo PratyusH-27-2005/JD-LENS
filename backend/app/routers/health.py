@@ -1,17 +1,12 @@
-from typing import Annotated, Literal
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, Response, status
-from pydantic import BaseModel
 
 from app.config import Settings, get_settings
 from app.db import db_ping
+from app.schemas.api import HealthResponse
 
 router = APIRouter(tags=["health"])
-
-
-class HealthResponse(BaseModel):
-    db: Literal["ok", "error"]
-    llm_configured: bool
 
 
 @router.get("/health", response_model=HealthResponse)

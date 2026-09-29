@@ -56,14 +56,14 @@ Next.js dashboard ──► FastAPI (routers) ──► Pipeline (code only) ─
 
 ## Data model
 
-Five Postgres tables: one for you, one per posting, one row per extracted field, one score per posting, and a log of every LLM call so you can debug from traces. Create them with Alembic migrations, not `create_all`.
+Five Postgres tables: one for you, one per posting, one row per extracted field, one score per posting, and a log of every LLM call so you can debug from traces. Create them with Alembic migrations, not `create_all`. No ORM relationships: lazy loading fails under asyncio, so services query child rows explicitly and `ON DELETE CASCADE` removes them.
 
 | Table | Key columns | Notes |
 |---|---|---|
-| `profile` | id, name, skills text[], cgpa numeric(3,2), has_backlogs bool, preferred_locations text[], min_cash_inr int, updated_at | One row for now. Seed from `.env` if the profile page is cut. |
-| `postings` | id uuid, raw_text, clean_text, content_hash (unique), status, status_reason, schema_version, prompt_version, model_name, created_at, processed_at | `status` = pending, verified, partial, needs_review. Same hash = duplicate. |
+| `profile` | id, name, skills text[], cgpa numeric(4,2) (3,2 tops out at 9.99), has_backlogs bool, preferred_locations text[], min_cash_inr int, updated_at | One row for now. Seed from `.env` if the profile page is cut. |
+| `postings` | id uuid, raw_text, clean_text, content_hash (unique), source_label, status, status_reason, schema_version, prompt_version, model_name, created_at, processed_at | `status` = pending, verified, partial, needs_review. Same hash = duplicate. |
 | `extracted_fields` | id, posting_id FK, field_name, raw_value, evidence, evidence_verified bool, normalized jsonb, flag, flag_reason | Unique on (posting_id, field_name, mention_index). `flag` = none, ambiguous, conflict, unverified, missing. |
-| `match_scores` | posting_id PK/FK, profile_id FK, score int 0–100, eligible bool, breakdown jsonb, computed_at | Recomputed when the profile changes. |
+| `match_scores` | posting_id PK/FK, profile_id FK, score int 0–100, eligible bool, breakdown jsonb, computed_at | Recomputed when the profile changes. The "Closed" badge is never stored: it depends on the clock, so it's computed at read time. |
 | `llm_calls` | id, posting_id FK, attempt, prompt_version, model, latency_ms, input_tokens, output_tokens, raw_response, parse_ok bool, error, created_at | Your trace log. The failure teardown comes from here. |
 
 ### Extraction contract (`app/schemas/extraction_v1.py`)
@@ -164,7 +164,7 @@ A part with unknown inputs is left out and the other weights are rescaled to 100
 
 ## API design
 
-Eight endpoints, all async, all with Pydantic request and response models and one error shape. The pipeline runs inside `POST /postings` (5–15 s is fine for v1); moving it to a background job is an extension.
+Eight endpoints, all async, all with Pydantic request and response models and one error shape. The pipeline runs inside `POST /postings` (5–15 s is fine for v1); moving it to a background job is an extension. The LLM call runs outside any database transaction; its result is then written in one transaction (posting, fields, llm_calls, score). A concurrent duplicate is caught by the unique `content_hash`.
 
 | Method | Path | Does | Returns |
 |---|---|---|---|

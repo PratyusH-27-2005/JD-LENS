@@ -1,15 +1,24 @@
 from collections.abc import AsyncIterator
+from typing import Any
 
 from sqlalchemy import text
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import (
+    AsyncEngine,
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
 
 from app.config import get_settings
 
-engine = create_async_engine(
-    get_settings().database_url,
-    pool_pre_ping=True,
-    connect_args={"timeout": 3},  # asyncpg connect timeout, so /health never hangs
-)
+
+def make_engine(url: str, **kwargs: Any) -> AsyncEngine:
+    # 10 s connect timeout: long enough for a Neon compute waking from scale-to-zero,
+    # short enough that /health never hangs.
+    return create_async_engine(url, pool_pre_ping=True, connect_args={"timeout": 10}, **kwargs)
+
+
+engine = make_engine(get_settings().database_url)
 SessionLocal = async_sessionmaker(engine, expire_on_commit=False)
 
 
