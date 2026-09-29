@@ -155,6 +155,7 @@ async def list_summaries(
             cast(ctc.normalized["cash_max_inr"].astext, BigInteger).label("cash_max_inr"),
             models.MatchScore.score,
             models.MatchScore.eligible,
+            models.MatchScore.breakdown,
         )
         .outerjoin(company, company_on)
         .outerjoin(role, role_on)
@@ -171,9 +172,19 @@ async def list_summaries(
 
     rows = (await session.execute(stmt)).mappings().all()
     return [
-        PostingSummary(**row, badge=scores.badge(row["eligible"], row["deadline"], now))
+        PostingSummary(
+            **{k: v for k, v in row.items() if k != "breakdown"},
+            scored_on=_scored_on(row["breakdown"]),
+            badge=scores.badge(row["eligible"], row["deadline"], now),
+        )
         for row in rows
     ]
+
+
+def _scored_on(breakdown: dict[str, Any] | None) -> list[str]:
+    """Which parts the score is based on, so "100" with no skills data reads as partial."""
+    parts = (breakdown or {}).get("parts", {})
+    return [name for name, part in parts.items() if part.get("included")]
 
 
 # --- helpers ---------------------------------------------------------------------------

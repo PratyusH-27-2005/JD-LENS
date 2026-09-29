@@ -1,0 +1,30 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  background: #fafaf9; /* stone-50 */
+  color: #1c1917; /* stone-900 */
+}
+
+/* Evidence highlight: the flash when a field card is clicked. */
+@keyframes evidence-flash {
+  0%,
+  60% {
+    background-color: rgb(252 211 77); /* amber-300 */
+  }
+  100% {
+    background-color: rgb(254 243 199); /* amber-100 */
+  }
+}
+
+.evidence-flash {
+  animation: evidence-flash 1.4s ease-out;
+}

@@ -49,6 +49,9 @@ class PostingSummary(BaseModel):
     cash_min_inr: int | None
     cash_max_inr: int | None
     score: int | None
+    scored_on: list[str] = Field(
+        description="score parts that had enough verified input, e.g. ['location', 'pay']"
+    )
     eligible: bool | None
     badge: Badge
     created_at: datetime

@@ -153,6 +153,7 @@ async def test_list_sorted_by_deadline_upcoming_first(api: AsyncClient, fake_llm
     assert k["company"] == "Kasparro"
     assert k["deadline"] == "2026-09-30T03:30:00Z"
     assert (k["cash_min_inr"], k["cash_max_inr"]) == (500_000, 800_000)
+    assert "skills" not in k["scored_on"]  # the notice lists no skills
 
     clock["now"] = datetime(2026, 10, 1, tzinfo=IST)  # Kasparro's deadline has passed
     rows = (await api.get("/postings")).json()

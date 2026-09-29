@@ -13,6 +13,10 @@ cd backend
 pip install -e ".[dev]"
 alembic upgrade head
 uvicorn app.main:app --reload   # http://localhost:8000/docs
+
+cd ../frontend                  # in a second terminal
+npm install
+npm run dev                     # http://localhost:3000
 ```
 
 Try one posting against the real model without the API: `python -m app.cli tests/fixtures/postings/kasparro.txt --raw`.
@@ -29,6 +33,11 @@ pytest -q tests/unit tests/pipeline  # fast, no database, no network
 API tests run against a real Postgres (`TEST_DATABASE_URL`, a database whose name ends in `_test`: tests truncate its tables). They're skipped when it isn't set. CI runs them against a Postgres service container.
 
 ## Known limitations
+
+**Web app**
+- No frontend tests yet: the pages were checked by hand in a browser (every state: loading, empty, API down, not found, validation, save). The evidence-finding logic in `lib/highlight.ts` mirrors the backend's folding rules but isn't unit-tested on its own.
+- Data is fetched in the browser (client components), so the first paint is a skeleton. Fine for a personal tool; server-side fetching would help SEO, which this doesn't need.
+- Sorting by score doesn't break ties by coverage: a 100 based on 2 of 3 parts can sit above a 100 based on all 3. The dashboard labels each score with its coverage.
 
 **API and data**
 - The pipeline runs inside `POST /postings` (5–20 s). Fine for one user; a job queue with polling is the listed extension.

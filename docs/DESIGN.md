@@ -169,7 +169,7 @@ Eight endpoints, all async, all with Pydantic request and response models and on
 | Method | Path | Does | Returns |
 |---|---|---|---|
 | POST | `/postings` | Body `{raw_text, source_label?}`. Saves, runs the pipeline, scores. | 201 with the posting detail. Same text again → 200 with the existing posting. |
-| GET | `/postings` | List. Query `status`, `sort=deadline` (default) or `sort=score`. | Summaries: company, role, deadline, cash range, score, eligible, status. |
+| GET | `/postings` | List. Query `status`, `sort=deadline` (default) or `sort=score`. | Summaries: company, role, deadline, cash range, score, `scored_on` (which parts the score is based on), eligible, badge, status. |
 | GET | `/postings/{id}` | Full detail: fields, evidence, flags, score breakdown, raw text. | Unverified values come back as `null`, with the flag and reason. |
 | POST | `/postings/{id}/reprocess` | Reruns the pipeline, e.g. after a prompt change. | The new detail. |
 | DELETE | `/postings/{id}` | Deletes a posting and its rows. | 204 |
