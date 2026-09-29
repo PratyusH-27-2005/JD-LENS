@@ -32,7 +32,10 @@ Anything that took over 30 minutes to figure out — raw material for the "harde
 - **Fix:** response headers (`Server: cloudflare`, `CF-RAY`) show Render's edge is
   Cloudflare, which sets `CF-Connecting-IP` to the real client address. The limiter keys on
   that when `TRUST_CF_CONNECTING_IP=true` (set in render.yaml), and never reads
-  `X-Forwarded-For`; `--forwarded-allow-ips='*'` is gone. Unit tests pin the behaviour; the
-  live re-test is below.
+  `X-Forwarded-For`; `--forwarded-allow-ips='*'` is gone. Unit tests pin the behaviour.
+- **Live re-test after the deploy:** 11 duplicate posts, each with a *different* random fake
+  `X-Forwarded-For`. Old code: `200 ×11` (every fake address got its own limit). New code:
+  `200 ×10, 429`. With all-different fake addresses, the old code could never produce that
+  429, so it proves the fix is what's serving.
 - **Lesson:** "trust the proxy headers" is only safe when you know exactly which proxy
   wrote them. `'*'` means "trust anyone".
