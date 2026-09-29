@@ -37,6 +37,7 @@ class Settings(BaseSettings):
     llm_model: str = ""
     llm_timeout_s: float = 30.0
     allowed_origins: str = "http://localhost:3000"
+    allowed_origin_regex: str = ""
     rate_limit_postings: str = "10/minute"
     rate_limit_resume: str = "5/minute"
 

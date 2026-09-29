@@ -72,3 +72,12 @@ jobs:
 
       - name: Build (includes the TypeScript check)
         run: npm run build
+
+  docker:
+    # The API image Render deploys; built here so a broken Dockerfile fails CI, not the deploy.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build API image
+        run: docker build -t jd-lens-api backend

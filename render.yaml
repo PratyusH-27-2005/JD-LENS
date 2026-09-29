@@ -1,0 +1,27 @@
+# Render Blueprint: the JD Lens API. Secrets are "sync: false" (you type them in Render's
+# dashboard); nothing secret lives in this file. See docs/DEPLOY.md.
+services:
+  - type: web
+    name: jd-lens-api
+    runtime: docker
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    region: singapore # next to the Neon database (AWS ap-southeast-1)
+    plan: free
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: DATABASE_URL # Neon connection string, pasted as-is
+        sync: false
+      - key: LLM_API_KEY
+        sync: false
+      - key: LLM_MODEL
+        value: gemini-2.5-flash
+      - key: LLM_TIMEOUT_S
+        value: "30"
+      - key: ALLOWED_ORIGINS # your Vercel URL, e.g. https://jd-lens.vercel.app
+        sync: false
+      - key: RATE_LIMIT_POSTINGS
+        value: 10/minute
+      - key: RATE_LIMIT_RESUME
+        value: 5/minute

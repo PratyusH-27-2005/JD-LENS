@@ -21,6 +21,10 @@ npm run dev                     # http://localhost:3000
 
 Try one posting against the real model without the API: `python -m app.cli tests/fixtures/postings/kasparro.txt --raw`.
 
+## Deploy
+
+Render (API, Docker) + Neon (Postgres) + Vercel (web), all free tiers: step by step in [docs/DEPLOY.md](docs/DEPLOY.md). The API image runs `alembic upgrade head` on start; CI builds that image on every push.
+
 ## Tests
 
 ```bash
