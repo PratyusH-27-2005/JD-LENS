@@ -51,16 +51,25 @@ The API runs `alembic upgrade head` on every start, so there's no separate migra
 2. **Root Directory: `frontend`**. Framework preset: Next.js (auto-detected).
 3. Environment variable: `NEXT_PUBLIC_API_URL` = `https://<your-service>.onrender.com`
    (no trailing slash). It's baked in at build time, so changing it later means a redeploy.
-4. **Deploy**. Note the production URL, e.g. `https://jd-lens.vercel.app`.
+4. **Deploy**. Note the production URL under **Domains** (e.g. `https://jd-lens-ten.vercel.app`). Vercel adds a suffix when the plain name is taken.
 
 ## 4. Connect them (CORS)
 
 Back in Render → the service → **Environment**:
 
-- `ALLOWED_ORIGINS` = `https://jd-lens.vercel.app` (your exact production URL; add
-  `,http://localhost:3000` if you also want local dev against the deployed API)
-- Optional, for Vercel preview deployments: `ALLOWED_ORIGIN_REGEX` =
-  `https://jd-lens(-[\w-]+)?\.vercel\.app`
+- `ALLOWED_ORIGINS` = your exact production URL, e.g. `https://jd-lens-ten.vercel.app`
+  (add `,http://localhost:3000` if you also want local dev against the deployed API)
+- Leave `ALLOWED_ORIGIN_REGEX` empty. **Don't use a pattern on `*.vercel.app`**: anyone can
+  create a Vercel project with any name (`jd-lens.vercel.app` is already someone else's),
+  so any pattern there, even one ending in your account name, can be matched by a project
+  named to fit it, and that site's visitors could then use your API and LLM quota from
+  their browsers. To test a preview deployment, add its exact URL to `ALLOWED_ORIGINS` for
+  a while. The regex setting is for a custom domain you own, e.g.
+  `https://([a-z0-9-]+\.)?jdlens\.dev`.
+
+> CORS only stops *other websites* from calling the API from a visitor's browser. The API
+> itself is public (no login): anyone can call it with curl. The per-IP rate limits are
+> what protect the LLM quota.
 
 Save; Render redeploys. Open the Vercel URL: the dashboard should list your postings.
 

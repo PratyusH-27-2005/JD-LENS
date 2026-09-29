@@ -14,7 +14,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.allowed_origins_list,
-        # Optional, e.g. r"https://jd-lens(-[\w-]+)?\.vercel\.app" for Vercel previews.
+        # Optional, only for a domain you own, e.g. r"https://([a-z0-9-]+\.)?jdlens\.dev".
+        # Never a pattern on *.vercel.app: anyone can name a project to match it.
         allow_origin_regex=settings.allowed_origin_regex or None,
         allow_methods=["*"],
         allow_headers=["*"],

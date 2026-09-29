@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import type { ApiError } from "@/lib/api";
+import { API_URL, type ApiError } from "@/lib/api";
 import type { Badge, Flag, Status } from "@/lib/types";
 
 type Tone = "green" | "amber" | "red" | "grey" | "blue";
@@ -97,18 +97,25 @@ export function Spinner({ className = "" }: { className?: string }) {
   );
 }
 
+const LOCAL_API = /\/\/(localhost|127\.0\.0\.1)(:|\/|$)/.test(API_URL);
+
 export function ErrorState({ error, onRetry }: { error: ApiError; onRetry?: () => void }) {
   const down = error.status === 0;
   return (
     <div role="alert" className="rounded-lg border border-rose-200 bg-rose-50 p-5 text-sm text-rose-900">
       <p className="font-semibold">{down ? "The API is unreachable" : "Something went wrong"}</p>
       <p className="mt-1 text-rose-800">{error.message}</p>
-      {down && (
-        <p className="mt-2 text-rose-800">
-          Start it with <code className="rounded bg-rose-100 px-1">uvicorn app.main:app --reload</code>{" "}
-          in <code className="rounded bg-rose-100 px-1">backend/</code>.
-        </p>
-      )}
+      {down &&
+        (LOCAL_API ? (
+          <p className="mt-2 text-rose-800">
+            Start it with <code className="rounded bg-rose-100 px-1">uvicorn app.main:app --reload</code>{" "}
+            in <code className="rounded bg-rose-100 px-1">backend/</code>.
+          </p>
+        ) : (
+          <p className="mt-2 text-rose-800">
+            The demo runs on free hosting that sleeps when idle. It usually wakes within a minute: try again shortly.
+          </p>
+        ))}
       {onRetry && (
         <Button variant="secondary" className="mt-4" onClick={onRetry}>
           Try again
